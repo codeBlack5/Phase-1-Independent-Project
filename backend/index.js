@@ -1,60 +1,210 @@
-const searchInput = document.querySelector('.input')
-searchInput.addEventListener("input", (e) => {
-    // inside, we will need to achieve a few things:
-    // 1. declare and assign the value of the event's target to a variable AKA whatever is typed in the search bar
-    let value = e.target.value
+const allTabsBody = document.querySelectorAll('.tab-body-single');
+const allTabsHead = document.querySelectorAll('.tab-head-single');
+const searchForm = document.querySelector('.app-header-search');
+let searchList = document.getElementById('search-list');
 
-    // 2. check: if input exists and if input is larger than 0
-    if (value && value.trim().length > 0){
-        // 3. redefine 'value' to exclude white space and change input to all lowercase
-         value = value.trim().toLowerCase()
-        // 4. return the results only if the value of the search is included in the person's name
-        // we need to write code (a function for filtering through our data to include the search input value)
-    } else {
-        // 5. return nothing
-        // input is invalid -- show an error message or show no results
+let activeTab = 1, allData;
 
-    }
-
-})
-
-const clearButton = document.getElementById('clear')
-
-clearButton.addEventListener("click", () => {
-    // 1. write a function that removes any previous results from the page
-})
-function setList(results){
-
-    for (const person of results){
-        // creating a li element for each result item
-        const resultItem = document.createElement('li')
-
-        // adding a class to each item of the results
-        resultItem.classList.add('result-item')
-
-        // grabbing the name of the current point of the loop and adding the name as the list item's text
-        const text = document.createTextNode(person.name)
-
-        // appending the text to the result item
-        resultItem.appendChild(text)
-
-        // appending the result item to the list
-        list.appendChild(resultItem)
-    }
+const init = () => {
+    showActiveTabBody();
+    showActiveTabHead();
 }
-searchInput.addEventListener("input", (e) => {
-    let value = e.target.value
 
-    if (value && value.trim().length > 0){
-         value = value.trim().toLowerCase()
+const showActiveTabHead = () => allTabsHead[activeTab - 1].classList.add('active-tab');
+const showActiveTabBody = () => {
+    hideAllTabBody();
+    allTabsBody[activeTab -1].classList.add('show-tab');
+}
 
-        //returning only the results of setList if the value of the search is included in the person's name
-        setList(people.filter(person => {
-            return person.name.includes(value)
-        }))}})
-        function clearList(){
-            // looping through each child of the search results list and remove each child
-            while (list.firstChild){
-                list.removeChild(list.firstChild)
-            }
+const hideAllTabBody = () => allTabsBody.forEach(singleTabBody => singleTabBody.classList.remove('show-tab'));
+const hideAllTabHead = () => allTabsHead.forEach(singleTabHead => singleTabHead.classList.remove('active-tab'));
+
+window.addEventListener("DOMContentLoaded", init());
+
+allTabsHead.forEach(singleTabHead =>{
+    singleTabHead.addEventListener('click', () => {
+        hideAllTabHead();
+        activeTab = singleTabHead.dataset.id;
+        showActiveTabHead();
+        showActiveTabBody();
+    });
+});
+
+const getInputValue = (event)=> {
+    event.preventDefault();
+    let searchText = searchForm.search.value;
+    fetchAllSuperHero(searchText);
+}
+
+searchForm.addEventListener('submit', getInputValue);
+
+// api key => 1368438443926226
+const fetchAllSuperHero = async(searchText) => {
+    const urls = `https://www.superheroapi.com/api.php/1368438443926226/search/${searchText}`;
+    try{
+        const response = await fetch(urls);
+        allData = await response.json();
+        if(allData.response === 'success'){
+            // console.log(allData);
+            showSearchList(allData.results);
         }
+    } catch(error){
+        console.log(error);
+    };
+}
+
+const showSearchList = (data) => {
+    searchList.innerHTML = "";
+    data.forEach(dataItem => {
+        const divElem = document.createElement("div");
+        divElem.classList.add("search-list-item");
+        divElem.innerHTML= `
+            <img  src = "${dataItem.image.url ? dataItem.image.url : ""}" alt = "">
+            <p data-id = "${dataItem.id}">${dataItem.name}</p> 
+            `;
+        searchList.appendChild(divElem);
+    });
+}
+
+searchForm.search.addEventListener('keyup', () => {
+    if(searchForm.search.value.length > 1){
+        fetchAllSuperHero(searchForm.search.value);
+    } else {
+        searchList.innerHTML = "";
+    }
+});
+
+searchList.addEventListener('click', (event) => {
+    let searchId = event.target.dataset.id;
+    // console.log(searchId);
+    let singleData = allData.results.filter(singleData => {
+        return searchId === singleData.id;
+    })
+    showSuperheroDetails(singleData);
+    searchList.innerHTML = "";
+});
+
+const showSuperheroDetails = (data) => {
+    console.log(data);
+    document.querySelector('.app-body-content-thumbnail').innerHTML = `
+      <img src="${data[0].image.url}">
+    `;
+
+    document.querySelector('.name').textContent = data[0].name;
+    document.querySelector('.powerstats').innerHTML = `
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Intelligence</span>
+            </div>
+            <span>${data[0].powerstats.intelligence}</span>
+        </li>
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>strength</span>
+            </div>
+            <span>${data[0].powerstats.strength}</span>
+        </li>
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>speed</span>
+            </div>
+            <span>${data[0].powerstats.speed}</span>
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>durability</span>
+            </div>
+            <span>${data[0].powerstats.durability}</span>
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>power</span>
+            </div>
+            <span>${data[0].powerstats.power}</span>
+        </li>
+        <li>
+            <div>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>combat</span>
+            </div>
+                <span>${data[0].powerstats.combat}</span>
+        </li>
+    `;
+    document.querySelector('.biography').innerHTML = `
+        <li>
+            <span>full name</span>
+            <span>${data[0].biography['full-name']}</span>
+        </li>
+        <li>
+            <span>alert-egos</span>
+            <span>${data[0].biography['alert-egos']}</span>
+        </li>
+        <li>
+            <span>aliases</span>
+            <span>${data[0].biography['aliases']}</span>
+        </li>
+        <li>
+            <span>place-of-birth</span>
+            <span>${data[0].biography['place-of-birth']}</span>
+        </li>
+        <li>
+            <span>first appearance</span>
+            <span>${data[0].biography['first appearance']}</span>
+        </li>
+        <li>
+            <span>publisher</span>
+            <span>${data[0].biography['publisher']}</span>
+        </li>
+    `;
+    document.querySelectorAll('.appearance').innerHTML = `
+        <li>
+            <span>
+                <i class="fas fa-star"></i>gender
+            </span>
+            <span>${data[0].appearance['gender']}</span>
+        </li>
+        <li>
+            <span>
+                <i class="fas fa-star"></i>race
+            </span>
+            <span>${data[0].appearance['race']}</span>
+        </li>
+        <li>
+            <span>
+                <i class="fas fa-star"></i>height
+            </span>
+            <span>${data[0].appearance['height'][0]}</span>
+        </li>
+        <li>
+            <span>
+                <i class="fas fa-star"></i>weight
+            </span>
+            <span>${data[0].appearance['weight'][0]}</span>
+        </li>
+        <li>
+            <span>
+                <i class="fas fa-star"></i>eye-color
+            </span>
+            <span>${data[0].appearance['eye-color']}</span>
+        </li>
+        <li>
+            <span>
+                <i class="fas fa-star"></i>hair-color
+            </span>
+            <span>${data[0].appearance['hair-color']}</span>
+        </li>
+    `
+    document.querySelector('.connections').innerHTML = `
+        <li>
+            <span>group--affiliation</span>
+            <span>Batman Family, Justice League Unlimited</span>
+        </li>
+        <li>
+            <span>relatives</span>
+            <span>Bruce Wayne (biological father), Warren McGinnis (father, deceased), Mary McGinnis (mother), Matt McGinnis (brother)</span>
+        </li>
+    `
+}
