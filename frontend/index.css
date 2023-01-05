@@ -30,6 +30,14 @@ body{
     align-items: center;
     justify-content: stretch;
 }
+input:invalid {
+    animation: shake .3s;
+}
+@keyframes shake {
+    25% {transform: translateX(4px)}
+    50% {transform: translateX(-4px)}
+    75% {transform: translateX(4px)}
+}
 
 button, input{
     font-family: inherit;
@@ -80,7 +88,7 @@ img{
     position: relative;
 }
 
-.app-header-search.form-control {
+.app-header-search .form-control {
     min-width: 420px;
     color: #fff;
 }
@@ -101,7 +109,7 @@ img{
     width: 100%;
     max-height: 400px;
     overflow-y: scroll;
-    display: none;
+    /* display: none; */
 }
 .search-list::-webkit-scrollbar{
     width: 7px;
